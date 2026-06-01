@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเลือกตั้ง 67</title>
+    <link rel="icon" type="image/x-icon" href="ตังทองมี coca.png">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <span class="logo">ระบบเลือกตั้ง 2026</span>
+            <button id="admin-login-btn" onclick="showSection('login-section')" class="btn-outline">แอดมิน</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- ส่วนการลงคะแนน -->
+        <section id="vote-section">
+            <div class="section-header">
+                <h1>ลงคะแนนเสียงของคุณ</h1>
+                <p>โปรดเลือกผู้สมัครที่คุณต้องการสนับสนุน</p>
+            </div>
+            <div id="candidate-grid" class="candidate-grid">
+                <!-- ผู้สมัครจะถูกเพิ่มที่นี่ผ่าน JavaScript -->
+            </div>
+            <div id="vote-status" class="status-msg"></div>
+        </section>
+
+        <!-- ส่วนล็อกอินแอดมิน -->
+        <section id="login-section" style="display: none;">
+            <div class="auth-card">
+                <h2>เข้าสู่ระบบแอดมิน</h2>
+                <p>กรุณากรอกรหัสผ่านเพื่อดูผลคะแนน</p>
+                <form id="login-form">
+                    <div class="form-group">
+                        <input type="password" id="admin-password" placeholder="รหัสผ่าน" required>
+                    </div>
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary">ตกลง</button>
+                        <button type="button" onclick="showSection('vote-section')" class="btn-text">ย้อนกลับ</button>
+                    </div>
+                    <p id="login-error" class="error-msg" style="display: none;">รหัสผ่านไม่ถูกต้อง!</p>
+                </form>
+            </div>
+        </section>
+
+        <!-- ส่วนแผงควบคุมแอดมิน -->
+        <section id="admin-section" style="display: none;">
+            <div class="section-header">
+                <h1>ผลคะแนนการเลือกตั้ง</h1>
+                <div class="admin-toolbar">
+                    <button onclick="refreshScores()" class="btn-refresh">อัปเดตคะแนน</button>
+                    <button onclick="resetScores()" class="btn-danger">รีเซ็ตคะแนนทั้งหมด</button>
+                    <button onclick="logout()" class="btn-outline">ออกจากระบบ</button>
+                </div>
+            </div>
+
+            <div class="admin-dashboard">
+                <div class="chart-container">
+                    <canvas id="voteChart"></canvas>
+                </div>
+                <div id="score-summary" class="score-summary">
+                    <!-- สรุปคะแนนแบบตัวเลขจะถูกเพิ่มที่นี่ -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
