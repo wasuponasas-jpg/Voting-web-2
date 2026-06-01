@@ -16,9 +16,9 @@ const firebaseConfig = {
  * ระบบจัดการข้อมูลผู้สมัคร
  */
 const candidates = [
-    { id: '1', name: 'ผู้สมัคร พ่อขุนรามคำแหงมหาราช', image: 'พ่อขุนรามคำแหงมหาราช.png' },
-    { id: '2', name: 'ผู้สมัคร อุ๊งอิ๊ง', image: 'อุ๊งอิ๊ง.png' },
-    { id: '3', name: 'ผู้สมัคร อนุทิน', image: 'อนุทิน.png' }
+    { id: '1', name: 'ผู้สมัคร พ่อขุนรามคำแหงมหาราช', image: 'asstet for by web/พ่อขุนรามคำแหงมหาราช.png' },
+    { id: '2', name: 'ผู้สมัคร อุ๊งอิ๊ง', image: 'asstet for by web/อุ๊งอิ๊ง.png' },
+    { id: '3', name: 'ผู้สมัคร อนุทิน', image: 'asstet for by web/อนุทิน.png' }
 ];
 
 // สถานะแอปพลิเคชัน
