@@ -223,6 +223,15 @@ input[type="password"] {
     color: var(--success-color);
 }
 
+.candidate-img-2 {
+    transform: translateY(20px);
+}
+
+
+
+
+
+
 .error-msg { color: var(--danger-color); margin-top: 10px; }
 
 @media (max-width: 768px) {

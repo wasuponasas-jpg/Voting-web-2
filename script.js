@@ -107,7 +107,7 @@ function renderCandidates() {
         card.className = 'card';
         card.innerHTML = `
             <div class="img-container">
-                <img src="${candidate.image}" alt="${candidate.name}">
+                <img src="${candidate.image}" alt="${candidate.name}" class="candidate-img-${candidate.id}">
             </div>
             <div class="card-info">
                 <h3>${candidate.name}</h3>
