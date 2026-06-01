@@ -16,8 +16,9 @@ const firebaseConfig = {
  * ระบบจัดการข้อมูลผู้สมัคร
  */
 const candidates = [
-    { id: '1', name: 'ผู้สมัคร แก้มบูด', image: 'แก้ม.png' },
-    { id: '2', name: 'ผู้สมัคร เต็ม', image: 'เต็ม.png' },
+    { id: '1', name: 'ผู้สมัคร พ่อขุนรามคำแหงมหาราช', image: 'พ่อขุนรามคำแหงมหาราช.png' },
+    { id: '2', name: 'ผู้สมัคร อุ๊งอิ๊ง', image: 'อุ๊งอิ๊ง.png' },
+    { id: '3', name: 'ผู้สมัคร อนุทิน', image: 'อนุทิน.png' }
 ];
 
 // สถานะแอปพลิเคชัน
@@ -142,7 +143,7 @@ function setupAdminLogin() {
         const password = adminPasswordInput.value;
         
         // รหัสผ่านเริ่มต้นคือ 'admin'
-        if (password === 'admin') {
+        if (password === '07042558') {
             loginError.style.display = 'none';
             adminPasswordInput.value = '';
             showSection('admin-section');
