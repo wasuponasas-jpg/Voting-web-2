@@ -16,8 +16,8 @@ const firebaseConfig = {
  * ระบบจัดการข้อมูลผู้สมัคร
  */
 const candidates = [
-    { id: '1', name: 'ผู้สมัคร อุ๋งๆ', image: 'อุ๋งๆ.jpg' },
-    { id: '2', name: 'ผู้สมัคร ตังทอง', image: 'ตังทอง.jpg' },
+    { id: '1', name: 'ผู้สมัคร แก้มบูด', image: 'แก้ม.png' },
+    { id: '2', name: 'ผู้สมัคร เต็ม', image: 'เต็ม.png' },
 ];
 
 // สถานะแอปพลิเคชัน
