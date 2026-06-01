@@ -75,10 +75,15 @@ function renderCandidates() {
  * ฟังก์ชันลงคะแนน
  */
 window.vote = function(id) {
+    // โหลดคะแนนล่าสุดจาก storage ก่อนเพื่อป้องกันการทับซ้อนกันระหว่างหน้าต่าง
+    loadScores();
+    
+    if (scores[id] === undefined) scores[id] = 0;
     scores[id]++;
     saveScores();
     
-    const candidateName = candidates.find(c => c.id === id).name;
+    const candidate = candidates.find(c => c.id === id);
+    const candidateName = candidate ? candidate.name : id;
     voteStatus.innerText = `ขอบคุณที่ลงคะแนนให้ ${candidateName}!`;
     
     // เคลียร์ข้อความหลัง 3 วินาที
@@ -199,6 +204,7 @@ window.refreshScores = function() {
 
 window.resetScores = function() {
     if (confirm('คุณต้องการล้างคะแนนทั้งหมดใช่หรือไม่? (การกระทำนี้ไม่สามารถย้อนกลับได้)')) {
+        scores = {}; // ล้างข้อมูลเก่าทั้งหมดทิ้ง
         candidates.forEach(c => scores[c.id] = 0);
         saveScores();
         updateAdminUI();
