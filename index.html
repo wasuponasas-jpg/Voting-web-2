@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDK (v10+) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        // ตรงนี้จะถูกเรียกใช้ใน script.js โดยเราจะส่งค่า database ไปให้
+        window.firebaseTools = { initializeApp, getDatabase, ref, onValue, set, update, runTransaction };
+    </script>
 </head>
 <body>
     <header>
