@@ -1,5 +1,19 @@
 /**
- * ระบบจัดการข้อมูลผู้สมัคร (แก้ไขตรงนี้เพื่อเพิ่ม/ลดผู้สมัคร)
+ * Firebase Configuration
+ * (ให้นำค่าที่คัดลอกจาก Firebase Console มาวางทับตรงนี้)
+ */
+const firebaseConfig = {
+    apiKey: "AIzaSyBbSLmseNMO4U4fZFf_G6zi8J9XbugI2pE",
+    authDomain: "voting-web67.firebaseapp.com",
+    databaseURL: "https://voting-web67-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "voting-web6",
+    storageBucket: "voting-web67.firebasestorage.app",
+    messagingSenderId: "398836916975",
+    appId: "1:398836916975:web:f8bdf99247ea635ef3b11a"
+};
+
+/**
+ * ระบบจัดการข้อมูลผู้สมัคร
  */
 const candidates = [
     { id: '1', name: 'ผู้สมัคร อุ๋งๆ', image: 'อุ๋งๆ.jpg' },
@@ -9,6 +23,7 @@ const candidates = [
 // สถานะแอปพลิเคชัน
 let scores = {};
 let voteChart = null;
+let db = null;
 
 // อ้างอิง DOM
 const candidateGrid = document.getElementById('candidate-grid');
@@ -22,36 +37,68 @@ const scoreSummary = document.getElementById('score-summary');
  * เริ่มต้นแอปพลิเคชัน
  */
 function init() {
-    loadScores();
+    // รอจนกว่า Firebase SDK จะโหลดเสร็จ
+    const checkFirebase = setInterval(() => {
+        if (window.firebaseTools) {
+            clearInterval(checkFirebase);
+            setupFirebase();
+        }
+    }, 100);
+
     renderCandidates();
     setupAdminLogin();
 }
 
 /**
- * โหลดคะแนนจาก localStorage
+ * ตั้งค่าการเชื่อมต่อ Firebase
  */
-function loadScores() {
-    const savedScores = localStorage.getItem('election_scores_2026');
-    if (savedScores) {
-        scores = JSON.parse(savedScores);
-    } else {
-        candidates.forEach(c => scores[c.id] = 0);
-    }
-    // ตรวจสอบว่าผู้สมัครใหม่ถูกเพิ่มเข้ามาใน config หรือไม่
-    candidates.forEach(c => {
-        if (scores[c.id] === undefined) scores[c.id] = 0;
+function setupFirebase() {
+    const { initializeApp, getDatabase, ref, onValue } = window.firebaseTools;
+    
+    // เริ่มต้น App
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+
+    // สร้างการเชื่อมต่อแบบ Real-time (ข้อมูลจะอัปเดตเองเมื่อมีการโหวต)
+    const scoresRef = ref(db, 'scores');
+    onValue(scoresRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            scores = data;
+        } else {
+            // ถ้ายังไม่มีข้อมูลใน DB ให้ตั้งเป็น 0
+            candidates.forEach(c => scores[c.id] = 0);
+        }
+        
+        // อัปเดต UI เมื่อข้อมูลเปลี่ยน (สำหรับหน้าแอดมินที่เปิดทิ้งไว้)
+        if (document.getElementById('admin-section').style.display === 'block') {
+            updateAdminUI();
+        }
     });
 }
 
 /**
- * บันทึกคะแนนลง localStorage
+ * ฟังก์ชันลงคะแนน (ใช้ Transaction เพื่อความแม่นยำ)
  */
-function saveScores() {
-    localStorage.setItem('election_scores_2026', JSON.stringify(scores));
-}
+window.vote = function(id) {
+    if (!db) return;
+    const { ref, runTransaction } = window.firebaseTools;
+    const voteRef = ref(db, `scores/${id}`);
+
+    runTransaction(voteRef, (currentValue) => {
+        return (currentValue || 0) + 1;
+    }).then(() => {
+        const candidate = candidates.find(c => c.id === id);
+        voteStatus.innerText = `ขอบคุณที่ลงคะแนนให้ ${candidate.name}! (ข้อมูลซิงค์แล้ว)`;
+        setTimeout(() => { voteStatus.innerText = ''; }, 3000);
+    }).catch((err) => {
+        console.error("Vote failed: ", err);
+        alert("เกิดข้อผิดพลาดในการส่งคะแนน โปรดตรวจสอบอินเทอร์เน็ต");
+    });
+};
 
 /**
- * แสดงรายการผู้สมัครในหน้าแรก
+ * แสดงรายการผู้สมัคร
  */
 function renderCandidates() {
     candidateGrid.innerHTML = '';
@@ -70,25 +117,6 @@ function renderCandidates() {
         candidateGrid.appendChild(card);
     });
 }
-
-/**
- * ฟังก์ชันลงคะแนน
- */
-window.vote = function(id) {
-    // โหลดคะแนนล่าสุดจาก storage ก่อนเพื่อป้องกันการทับซ้อนกันระหว่างหน้าต่าง
-    loadScores();
-    
-    if (scores[id] === undefined) scores[id] = 0;
-    scores[id]++;
-    saveScores();
-    
-    const candidate = candidates.find(c => c.id === id);
-    const candidateName = candidate ? candidate.name : id;
-    voteStatus.innerText = `ขอบคุณที่ลงคะแนนให้ ${candidateName}!`;
-    
-    // เคลียร์ข้อความหลัง 3 วินาที
-    setTimeout(() => { voteStatus.innerText = ''; }, 3000);
-};
 
 /**
  * การจัดการส่วนแสดงผล (Sections)
@@ -193,9 +221,10 @@ function updateAdminUI() {
  * ฟังก์ชัน Refresh และ Reset
  */
 window.refreshScores = function() {
-    loadScores();
+    // ในระบบ Real-time ข้อมูลจะอัปเดตเองอยู่แล้ว
+    // แต่เราใส่ฟังก์ชันนี้ไว้เพื่อให้แอดมินมั่นใจ
     updateAdminUI();
-    // แสดง feedback เล็กน้อย
+    
     const refreshBtn = document.querySelector('.btn-refresh');
     const originalText = refreshBtn.innerText;
     refreshBtn.innerText = 'อัปเดตแล้ว!';
@@ -203,11 +232,18 @@ window.refreshScores = function() {
 };
 
 window.resetScores = function() {
-    if (confirm('คุณต้องการล้างคะแนนทั้งหมดใช่หรือไม่? (การกระทำนี้ไม่สามารถย้อนกลับได้)')) {
-        scores = {}; // ล้างข้อมูลเก่าทั้งหมดทิ้ง
-        candidates.forEach(c => scores[c.id] = 0);
-        saveScores();
-        updateAdminUI();
+    if (confirm('คุณต้องการล้างคะแนนทั้งหมดใช่หรือไม่? (คะแนนในฐานข้อมูลจะกลายเป็น 0 ทั้งหมด)')) {
+        if (!db) return;
+        const { ref, set } = window.firebaseTools;
+        const newScores = {};
+        candidates.forEach(c => newScores[c.id] = 0);
+        
+        set(ref(db, 'scores'), newScores)
+            .then(() => {
+                alert('รีเซ็ตคะแนนเรียบร้อยแล้ว');
+                updateAdminUI();
+            })
+            .catch(err => alert('เกิดข้อผิดพลาด: ' + err.message));
     }
 };
 
