@@ -17,7 +17,7 @@ const firebaseConfig = {
  */
 const candidates = [
     { id: '1', name: 'ผู้สมัคร พ่อขุนรามคำแหงมหาราช', image: 'พ่อขุนรามคำแหงมหาราช.png' },
-    { id: '2', name: 'ผู้สมัคร อนุทิน', image: 'อนุทิน.png' },
+    { id: '2', name: 'ผู้สมัคร อนุทิน', image: '6767.png' },
 ];
 
 // สถานะแอปพลิเคชัน
