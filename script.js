@@ -117,22 +117,29 @@ function renderCandidates() {
  */
 window.addCandidate = function() {
     const nameInput = document.getElementById('new-candidate-name');
-    const imageInput = document.getElementById('new-candidate-image');
+    const imageSelect = document.getElementById('new-candidate-image');
     
     if (!nameInput.value) return alert('กรุณากรอกชื่อผู้สมัคร');
+    if (!imageSelect.value) return alert('กรุณาเลือกรูปภาพ');
     
+    // เติมคำว่า "ผู้สมัคร " นำหน้าถ้ายังไม่มี
+    let fullName = nameInput.value.trim();
+    if (!fullName.startsWith('ผู้สมัคร')) {
+        fullName = 'ผู้สมัคร ' + fullName;
+    }
+
     const id = 'c' + Date.now();
     const newCandidate = {
         id: id,
-        name: nameInput.value,
-        image: imageInput.value || 'ตังทองมี coca.png'
+        name: fullName,
+        image: imageSelect.value
     };
 
     const { ref, set } = window.firebaseTools;
     set(ref(db, `candidates/${id}`), newCandidate)
         .then(() => {
             nameInput.value = '';
-            imageInput.value = '';
+            imageSelect.value = '';
         })
         .catch(err => alert('Error: ' + err.message));
 };
@@ -156,10 +163,16 @@ function renderAdminCandidates() {
     candidates.forEach(c => {
         const item = document.createElement('div');
         item.className = 'admin-candidate-item';
-        item.style = 'display:flex; justify-content:space-between; align-items:center; background:#eee; padding:10px; margin-bottom:5px; border-radius:8px;';
+        item.style = 'display:flex; justify-content:space-between; align-items:center; background:#eee; padding:10px; margin-bottom:10px; border-radius:12px; border: 1px solid #ddd;';
         item.innerHTML = `
-            <span>${c.name}</span>
-            <button onclick="deleteCandidate('${c.id}')" class="btn-danger" style="padding:5px 10px; font-size:0.8rem;">ลบ</button>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <img src="${c.image}" style="width:50px; height:50px; object-fit:cover; border-radius:50%;" onerror="this.src='ตังทองมี coca.png'">
+                <div style="display:flex; flex-direction:column;">
+                    <strong style="font-size:1.1rem;">${c.name}</strong>
+                    <small style="color:#666;">ไฟล์: ${c.image}</small>
+                </div>
+            </div>
+            <button onclick="deleteCandidate('${c.id}')" class="btn-danger" style="padding:8px 15px; font-size:0.9rem;">ลบผู้สมัคร</button>
         `;
         adminCandidateList.appendChild(item);
     });

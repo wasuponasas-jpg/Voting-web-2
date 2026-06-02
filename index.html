@@ -82,8 +82,18 @@
             <div class="management-section">
                 <h2>จัดการผู้สมัคร</h2>
                 <div class="add-candidate-form">
-                    <input type="text" id="new-candidate-name" placeholder="ชื่อผู้สมัคร">
-                    <input type="text" id="new-candidate-image" placeholder="ชื่อไฟล์รูปภาพ (เช่น image.jpg)">
+                    <input type="text" id="new-candidate-name" placeholder="ชื่อผู้สมัคร (ระบบจะเติม 'ผู้สมัคร' ให้เอง)">
+                    <select id="new-candidate-image">
+                        <option value="">-- เลือกรูปภาพ --</option>
+                        <option value="ตังทอง.jpg">ตังทอง.jpg</option>
+                        <option value="อุ๋งๆ.jpg">อุ๋งๆ.jpg</option>
+                        <option value="6767.png">6767.png (อนุทิน)</option>
+                        <option value="พ่อขุนรามคำแหงมหาราช.png">พ่อขุนรามคำแหงมหาราช.png</option>
+                        <option value="อุ๊งอิ๊ง.png">อุ๊งอิ๊ง.png</option>
+                        <option value="เต็ม.png">เต็ม.png</option>
+                        <option value="แก้ม.png">แก้ม.png</option>
+                        <option value="ตังทองมี coca.png">ตังทองมี coca.png</option>
+                    </select>
                     <button onclick="addCandidate()" class="btn-primary">เพิ่มผู้สมัคร</button>
                 </div>
                 <div id="admin-candidate-list" class="admin-candidate-list">
