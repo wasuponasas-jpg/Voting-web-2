@@ -76,6 +76,20 @@
                     <!-- สรุปคะแนนแบบตัวเลขจะถูกเพิ่มที่นี่ -->
                 </div>
             </div>
+
+            <hr class="section-divider">
+
+            <div class="management-section">
+                <h2>จัดการผู้สมัคร</h2>
+                <div class="add-candidate-form">
+                    <input type="text" id="new-candidate-name" placeholder="ชื่อผู้สมัคร">
+                    <input type="text" id="new-candidate-image" placeholder="ชื่อไฟล์รูปภาพ (เช่น image.jpg)">
+                    <button onclick="addCandidate()" class="btn-primary">เพิ่มผู้สมัคร</button>
+                </div>
+                <div id="admin-candidate-list" class="admin-candidate-list">
+                    <!-- รายการผู้สมัครสำหรับลบจะแสดงที่นี่ -->
+                </div>
+            </div>
         </section>
     </main>
 

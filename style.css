@@ -227,6 +227,46 @@ input[type="password"] {
     transform: translateY(20px);
 }
 
+.section-divider {
+    margin: 3rem 0;
+    border: 0;
+    border-top: 1px solid #ddd;
+}
+
+.management-section {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-top: 2rem;
+}
+
+.management-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+.add-candidate-form {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.add-candidate-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.admin-candidate-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .error-msg { color: var(--danger-color); margin-top: 10px; }
 
 @media (max-width: 768px) {

@@ -1,6 +1,5 @@
 /**
  * Firebase Configuration
- * (ให้นำค่าที่คัดลอกจาก Firebase Console มาวางทับตรงนี้)
  */
 const firebaseConfig = {
     apiKey: "AIzaSyBbSLmseNMO4U4fZFf_G6zi8J9XbugI2pE",
@@ -12,15 +11,8 @@ const firebaseConfig = {
     appId: "1:398836916975:web:f8bdf99247ea635ef3b11a"
 };
 
-/**
- * ระบบจัดการข้อมูลผู้สมัคร
- */
-const candidates = [
-    { id: '1', name: 'ผู้สมัคร พ่อขุนรามคำแหงมหาราช', image: 'พ่อขุนรามคำแหงมหาราช.png' },
-    { id: '2', name: 'ผู้สมัคร อนุทิน', image: '6767.png' },
-];
-
 // สถานะแอปพลิเคชัน
+let candidates = [];
 let scores = {};
 let voteChart = null;
 let db = null;
@@ -32,20 +24,18 @@ const adminPasswordInput = document.getElementById('admin-password');
 const loginError = document.getElementById('login-error');
 const voteStatus = document.getElementById('vote-status');
 const scoreSummary = document.getElementById('score-summary');
+const adminCandidateList = document.getElementById('admin-candidate-list');
 
 /**
  * เริ่มต้นแอปพลิเคชัน
  */
 function init() {
-    // รอจนกว่า Firebase SDK จะโหลดเสร็จ
     const checkFirebase = setInterval(() => {
         if (window.firebaseTools) {
             clearInterval(checkFirebase);
             setupFirebase();
         }
-    }, 100);
-
-    renderCandidates();
+    }, 1000);
     setupAdminLogin();
 }
 
@@ -54,23 +44,24 @@ function init() {
  */
 function setupFirebase() {
     const { initializeApp, getDatabase, ref, onValue } = window.firebaseTools;
-    
-    // เริ่มต้น App
     const app = initializeApp(firebaseConfig);
     db = getDatabase(app);
 
-    // สร้างการเชื่อมต่อแบบ Real-time (ข้อมูลจะอัปเดตเองเมื่อมีการโหวต)
+    // ดึงข้อมูลผู้สมัคร
+    const candidatesRef = ref(db, 'candidates');
+    onValue(candidatesRef, (snapshot) => {
+        const data = snapshot.val();
+        candidates = data ? Object.values(data) : [];
+        renderCandidates();
+        if (document.getElementById('admin-section').style.display === 'block') {
+            renderAdminCandidates();
+        }
+    });
+
+    // ดึงข้อมูลคะแนน
     const scoresRef = ref(db, 'scores');
     onValue(scoresRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            scores = data;
-        } else {
-            // ถ้ายังไม่มีข้อมูลใน DB ให้ตั้งเป็น 0
-            candidates.forEach(c => scores[c.id] = 0);
-        }
-        
-        // อัปเดต UI เมื่อข้อมูลเปลี่ยน (สำหรับหน้าแอดมินที่เปิดทิ้งไว้)
+        scores = snapshot.val() || {};
         if (document.getElementById('admin-section').style.display === 'block') {
             updateAdminUI();
         }
@@ -78,7 +69,7 @@ function setupFirebase() {
 }
 
 /**
- * ฟังก์ชันลงคะแนน (ใช้ Transaction เพื่อความแม่นยำ)
+ * ฟังก์ชันลงคะแนน
  */
 window.vote = function(id) {
     if (!db) return;
@@ -89,25 +80,28 @@ window.vote = function(id) {
         return (currentValue || 0) + 1;
     }).then(() => {
         const candidate = candidates.find(c => c.id === id);
-        voteStatus.innerText = `ขอบคุณที่ลงคะแนนให้ ${candidate.name}! (ข้อมูลซิงค์แล้ว)`;
+        voteStatus.innerText = `ขอบคุณที่ลงคะแนนให้ ${candidate ? candidate.name : 'ผู้สมัคร'}!`;
         setTimeout(() => { voteStatus.innerText = ''; }, 3000);
     }).catch((err) => {
         console.error("Vote failed: ", err);
-        alert("เกิดข้อผิดพลาดในการส่งคะแนน โปรดตรวจสอบอินเทอร์เน็ต");
     });
 };
 
 /**
- * แสดงรายการผู้สมัคร
+ * แสดงรายการผู้สมัครสำหรับผู้ใช้ทั่วไป
  */
 function renderCandidates() {
     candidateGrid.innerHTML = '';
+    if (candidates.length === 0) {
+        candidateGrid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">ยังไม่มีผู้สมัครในขณะนี้</p>';
+        return;
+    }
     candidates.forEach(candidate => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
             <div class="img-container">
-                <img src="${candidate.image}" alt="${candidate.name}" class="candidate-img-${candidate.id}">
+                <img src="${candidate.image}" alt="${candidate.name}" onerror="this.src='ตังทองมี coca.png'">
             </div>
             <div class="card-info">
                 <h3>${candidate.name}</h3>
@@ -115,6 +109,59 @@ function renderCandidates() {
             </div>
         `;
         candidateGrid.appendChild(card);
+    });
+}
+
+/**
+ * จัดการผู้สมัคร (เพิ่ม)
+ */
+window.addCandidate = function() {
+    const nameInput = document.getElementById('new-candidate-name');
+    const imageInput = document.getElementById('new-candidate-image');
+    
+    if (!nameInput.value) return alert('กรุณากรอกชื่อผู้สมัคร');
+    
+    const id = 'c' + Date.now();
+    const newCandidate = {
+        id: id,
+        name: nameInput.value,
+        image: imageInput.value || 'ตังทองมี coca.png'
+    };
+
+    const { ref, set } = window.firebaseTools;
+    set(ref(db, `candidates/${id}`), newCandidate)
+        .then(() => {
+            nameInput.value = '';
+            imageInput.value = '';
+        })
+        .catch(err => alert('Error: ' + err.message));
+};
+
+/**
+ * จัดการผู้สมัคร (ลบ)
+ */
+window.deleteCandidate = function(id) {
+    if (!confirm('ยืนยันการลบผู้สมัครรายนี้? (คะแนนจะยังคงอยู่ในระบบแต่จะไม่แสดงผล)')) return;
+    
+    const { ref, set } = window.firebaseTools;
+    set(ref(db, `candidates/${id}`), null)
+        .catch(err => alert('Error: ' + err.message));
+};
+
+/**
+ * แสดงรายการผู้สมัครในหน้าแอดมิน
+ */
+function renderAdminCandidates() {
+    adminCandidateList.innerHTML = '';
+    candidates.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'admin-candidate-item';
+        item.style = 'display:flex; justify-content:space-between; align-items:center; background:#eee; padding:10px; margin-bottom:5px; border-radius:8px;';
+        item.innerHTML = `
+            <span>${c.name}</span>
+            <button onclick="deleteCandidate('${c.id}')" class="btn-danger" style="padding:5px 10px; font-size:0.8rem;">ลบ</button>
+        `;
+        adminCandidateList.appendChild(item);
     });
 }
 
@@ -130,6 +177,7 @@ window.showSection = function(sectionId) {
     if (sectionId === 'admin-section') {
         initChart();
         updateAdminUI();
+        renderAdminCandidates();
     }
 };
 
@@ -139,10 +187,7 @@ window.showSection = function(sectionId) {
 function setupAdminLogin() {
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const password = adminPasswordInput.value;
-        
-        // รหัสผ่านเริ่มต้นคือ '07042558'
-        if (password === '07042558') {
+        if (adminPasswordInput.value === '07042558') {
             loginError.style.display = 'none';
             adminPasswordInput.value = '';
             showSection('admin-section');
@@ -157,14 +202,11 @@ window.logout = function() {
 };
 
 /**
- * จัดการแผนภูมิ (Chart.js)
+ * จัดการแผนภูมิ
  */
 function initChart() {
     const ctx = document.getElementById('voteChart').getContext('2d');
-    
-    if (voteChart) {
-        voteChart.destroy();
-    }
+    if (voteChart) voteChart.destroy();
 
     voteChart = new Chart(ctx, {
         type: 'bar',
@@ -172,7 +214,7 @@ function initChart() {
             labels: candidates.map(c => c.name),
             datasets: [{
                 label: 'คะแนนโหวต',
-                data: candidates.map(c => scores[c.id]),
+                data: candidates.map(c => scores[c.id] || 0),
                 backgroundColor: 'rgba(74, 105, 189, 0.7)',
                 borderColor: 'rgba(74, 105, 189, 1)',
                 borderWidth: 1
@@ -181,15 +223,8 @@ function initChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { display: false } }
         }
     });
 }
@@ -198,54 +233,34 @@ function initChart() {
  * อัปเดตข้อมูลในหน้าแอดมิน
  */
 function updateAdminUI() {
-    // อัปเดตกราฟ
     if (voteChart) {
-        voteChart.data.datasets[0].data = candidates.map(c => scores[c.id]);
+        voteChart.data.labels = candidates.map(c => c.name);
+        voteChart.data.datasets[0].data = candidates.map(c => scores[c.id] || 0);
         voteChart.update();
     }
 
-    // อัปเดตตัวเลขสรุป
     scoreSummary.innerHTML = '';
     candidates.forEach(c => {
         const item = document.createElement('div');
         item.className = 'score-item';
         item.innerHTML = `
             <span class="score-name">${c.name}</span>
-            <span class="score-value">${scores[c.id]}</span>
+            <span class="score-value">${scores[c.id] || 0}</span>
         `;
         scoreSummary.appendChild(item);
     });
 }
 
 /**
- * ฟังก์ชัน Refresh และ Reset
+ * รีเซ็ตคะแนน
  */
-window.refreshScores = function() {
-    // ในระบบ Real-time ข้อมูลจะอัปเดตเองอยู่แล้ว
-    // แต่เราใส่ฟังก์ชันนี้ไว้เพื่อให้แอดมินมั่นใจ
-    updateAdminUI();
-    
-    const refreshBtn = document.querySelector('.btn-refresh');
-    const originalText = refreshBtn.innerText;
-    refreshBtn.innerText = 'อัปเดตแล้ว!';
-    setTimeout(() => { refreshBtn.innerText = originalText; }, 1000);
-};
-
 window.resetScores = function() {
-    if (confirm('คุณต้องการล้างคะแนนทั้งหมดใช่หรือไม่? (คะแนนในฐานข้อมูลจะกลายเป็น 0 ทั้งหมด)')) {
-        if (!db) return;
-        const { ref, set } = window.firebaseTools;
-        const newScores = {};
-        candidates.forEach(c => newScores[c.id] = 0);
-        
-        set(ref(db, 'scores'), newScores)
-            .then(() => {
-                alert('รีเซ็ตคะแนนเรียบร้อยแล้ว');
-                updateAdminUI();
-            })
-            .catch(err => alert('เกิดข้อผิดพลาด: ' + err.message));
-    }
+    if (!confirm('คุณต้องการล้างคะแนนทั้งหมดใช่หรือไม่?')) return;
+    const { ref, set } = window.firebaseTools;
+    const resetData = {};
+    candidates.forEach(c => resetData[c.id] = 0);
+    set(ref(db, 'scores'), resetData).catch(err => alert(err.message));
 };
 
-// เริ่มทำงานเมื่อโหลดหน้าเสร็จ
+window.refreshScores = () => updateAdminUI();
 window.onload = init;
