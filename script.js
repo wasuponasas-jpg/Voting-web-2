@@ -141,7 +141,7 @@ function setupAdminLogin() {
         e.preventDefault();
         const password = adminPasswordInput.value;
         
-        // รหัสผ่านเริ่มต้นคือ 'admin'
+        // รหัสผ่านเริ่มต้นคือ '07042558'
         if (password === '07042558') {
             loginError.style.display = 'none';
             adminPasswordInput.value = '';
